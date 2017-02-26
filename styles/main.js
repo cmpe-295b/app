@@ -7,7 +7,16 @@ import {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
+    marginTop: 50,
+    marginLeft: 20,
+    marginRight: 20
+  },
+  cameraContainer: {
+    flex: 1,
+    marginTop: 0,
+    marginLeft: 0,
+    marginRight: 0
   },
   preview: {
     flex: 1,

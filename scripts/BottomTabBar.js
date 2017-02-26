@@ -20,14 +20,35 @@ export default class TabBar extends Component {
 
   state = {
     selectedTab: 'cartTab',
+    cartItems: [],
     notifCount: 0,
     presses: 0,
+    showCamera: false
   };
 
+  updateCameraState = (val) => {
+    this.setState({showCamera: val});
+  }
+
+  addItemToCart = (item) => {
+    this.setState(
+      {
+        cartItems: this.state.cartItems.concat([item]),
+        showCamera: false
+      }
+    );
+  }
+
   _renderContent = (color: string, pageText: string, num?: number) => {
+
     if(pageText === 'cart'){
       return(
-        <Cart />
+        <Cart
+          cartItems = {this.state.cartItems}
+          addItemToCart = {this.addItemToCart}
+          showCamera = {this.state.showCamera}
+          updateCameraState = {this.updateCameraState}
+         />
       );
     }else if(pageText === 'recognize'){
       return(
