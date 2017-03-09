@@ -34,7 +34,7 @@ export default class Cart extends Component {
           "Type: " + e.type + "\nData: " + e.data
       );
       var item = {
-        name: 'testitem',
+        name: e.data,
         price: 10
       };
       this.props.addItemToCart(item);

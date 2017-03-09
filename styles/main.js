@@ -12,6 +12,10 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     marginRight: 20
   },
+  faceContainer: {
+    flex: 1,
+    marginTop: 35
+  },
   cameraContainer: {
     flex: 1,
     marginTop: 0,

@@ -14,16 +14,18 @@ module.exports = {
             'Accept': 'application/json',
             'Content-Type': 'application/octet-stream',
             'Ocp-Apim-Subscription-Key': api_key
-        }, photo)
-        .then((res) => {
-            return res.json();
-        })
-        .then((json) => {
-            return json;
-        })
-        .catch(function (error) {
-            console.log(error);
-        });
+        }, photo);
+        // .then((res) => {
+        //     console.log("face api upload success res");
+        //     return res.json();
+        // })
+        // .then((json) => {
+        //     return json;
+        // })
+        // .catch(function (error) {
+        //     console.log("face api upload err");
+        //     console.log(error);
+        // });
     },
 
     request: function(url, method, api_key, data){

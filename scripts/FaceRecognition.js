@@ -1,18 +1,14 @@
 'use strict';
 
 import React, { Component } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
-  Button,
-  Alert,
-} from 'react-native';
+import { StyleSheet, Text, View, Dimensions, Button,  Alert} from 'react-native';
 import Camera from 'react-native-camera';
 import RNFS from 'react-native-fs';
 import RNFetchBlob from 'react-native-fetch-blob';
-import Requestor from './Requestor';
+import FaceAPI from './FaceAPIRequestor';
+import CustomAPI from './CustomAPIRequestor';
+import AccountModal from './accountModal';
+
 import styles from '../styles/main';
 
 let facelist_id = 'facelist_001';
@@ -23,12 +19,19 @@ let face_api_base_url = 'https://westus.api.cognitive.microsoft.com';
 let api_key = ''; //Insert key manually.
 
 export default class FaceRecognition extends Component {
-    state = {showCamera: true};
+    state = {
+      showCamera: true,
+      showAccountModal: false,
+      photo_data: null
+    };
 
+    setCameraVisibility= (val) => {
+        this.setState({showCamera: val});
+    }
 
     createFaceList() {
       console.log('IN CREATE FACE LIST');
-      Requestor.request(
+      FaceAPI.request(
         face_api_base_url + '/face/v1.0/facelists/' + facelist_id,
         'PUT',
         api_key,
@@ -41,14 +44,14 @@ export default class FaceRecognition extends Component {
 
     }
 
-    addFaceToFaceList(photo_data) {
+  addFaceToFaceList(photo_data) {
 
     var user_data = {
       name: this.state.name
       //filename: this.state.photo.uri
     };
 
-    Requestor.upload(
+    return FaceAPI.upload(
       face_api_base_url + '/face/v1.0/facelists/' + facelist_id + '/persistedFaces',
       api_key,
       //this.state.photo_data,
@@ -57,10 +60,6 @@ export default class FaceRecognition extends Component {
         userData: JSON.stringify(user_data)
       }
     )
-    .then((res) => {
-      alert('Face was added to face list!');
-    });
-
   }
 
   faceDetect(data) {
@@ -88,43 +87,36 @@ export default class FaceRecognition extends Component {
       });
   }
 
-  uploadImage (url, api_key, photo, query_params){
-    if(typeof query_params != 'undefined'){
-      //construct the query parameter from the query_params object
-      let ret = [];
-      for(let d in query_params){
-        ret.push(encodeURIComponent(d) + "=" + encodeURIComponent(query_params[d]));
-      }
-
-      let url = url + "?" + ret.join("&"); //combine the query parameters with the URL
-    }
-
-    return RNFetchBlob.fetch('POST', url, {
-        'Accept': 'application/json',
-        'Content-Type': 'application/octet-stream',
-        'Ocp-Apim-Subscription-Key': api_key
-    }, photo)
+  createUser = (name, id) => {
+    this.addFaceToFaceList(this.state.photo_data)
+    .then((res) => res.json()) //Parse response data after face is added to the list.
+    .then((json) => json)
+    .catch((error) => console.log(error))
+    .then((res) => CustomAPI.createUser(name, res.persistedFaceId))
+    .then((res) => res.json())
+    .then((json) => json)
     .then((res) => {
-      //console.log(res.json());
-      return res.json();
+        console.log(res);
+        this.setState({showAccountModal: true});
     })
-    .then((json) => {
-      console.log(json);
-      return json;
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
+    .catch((error) => console.log(error))
   }
 
-  getSimilarFace(photo_data) {
+  getSimilarFace = (photo_data) => {
 
     //First, check if there a face can be detected
-    Requestor.upload(
+    FaceAPI.upload(
       face_api_base_url + '/face/v1.0/detect',
       api_key,
       photo_data
     )
+    .then((res) => {
+        console.log("face api upload success res");
+        return res.json();
+    })
+    .then((json) => {
+        return json;
+    })
     .then((facedetect_res) => {
       console.log(facedetect_res);
       if(facedetect_res[0]){
@@ -136,7 +128,7 @@ export default class FaceRecognition extends Component {
         }
 
         //If a face is found, search for similars
-        Requestor.request(
+        FaceAPI.request(
           face_api_base_url + '/face/v1.0/findsimilars',
           'POST',
           api_key,
@@ -152,10 +144,15 @@ export default class FaceRecognition extends Component {
             );
           }else{
             Alert.alert(
-                "Face couldn't be recognized. Create a new account?"
-            );
+            'New User',
+              "Face couldn't be recognized. Create a new account?",
+              [
+                {text: 'Cancel', onPress: () => console.log('Cancel Pressed!')},
+                {text: 'Create', onPress: () =>  this.setState({showAccountModal: true, showCamera:false, photo_data: photo_data})}
+              ]
+            )
           }
-          // Requestor.request(
+          // FaceAPI.request(
           //   face_api_base_url + '/face/v1.0/facelists/' + facelist_id,
           //   'GET',
           //   api_key
@@ -196,6 +193,8 @@ export default class FaceRecognition extends Component {
   takePicture = () => {
     var t = this;
     if( this.camera ) {
+      //this.setState({showAccountModal: true, showCamera:false});
+
       this.camera.capture({target: Camera.constants.CaptureTarget.disk})
         .then( ( data ) => {
           let base64Img = data.path;
@@ -218,7 +217,7 @@ export default class FaceRecognition extends Component {
       console.log('in script face');
       if(this.state.showCamera) {
          return (
-          <View style={styles.container}>
+          <View style={styles.faceContainer}>
             <Button
               onPress={() => this.takePicture()}
               title="Capture"
@@ -232,7 +231,11 @@ export default class FaceRecognition extends Component {
                aspect={Camera.constants.Aspect.fill}
              >
              </Camera>
-
+             <AccountModal
+              show = {this.state.showAccountModal}
+              createUser = {this.createUser}
+              setCameraVisibility = {this.setCameraVisibility}
+              />
          </View>
          );
      } else {
@@ -243,6 +246,11 @@ export default class FaceRecognition extends Component {
                title="Capture"
                style={styles.capture}
              />
+             <AccountModal
+              show = {this.state.showAccountModal}
+              createUser = {this.createUser}
+              setCameraVisibility = {this.setCameraVisibility}
+              />
         </View>
       );
     }
