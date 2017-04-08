@@ -12,6 +12,11 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     marginRight: 20
   },
+  mapContainer:{
+    flex: 1,
+    marginTop: 75,
+    alignItems: 'center',
+  },
   faceContainer: {
     flex: 1,
     marginTop: 35
@@ -36,6 +41,10 @@ const styles = StyleSheet.create({
     color: '#000',
     padding: 10,
     margin: 40
+  },
+  map: {
+    width: 200,
+    height: 400
   }
 });
 

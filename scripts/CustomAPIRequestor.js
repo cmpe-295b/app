@@ -1,7 +1,8 @@
 import RNFetchBlob from 'react-native-fetch-blob';
 
 module.exports = {
-    urlBase: "http://10.0.0.5:8000/api",
+    //urlBase: "http://10.0.0.5:8000/api",
+    urlBase: "http://10.0.0.5:3000/api",
     createUser: function(name, id){
         let options = {
             'method': 'POST',
@@ -13,14 +14,21 @@ module.exports = {
         };
 
         return fetch(this.urlBase + "/users", options);
-        // .then((res) => {
-        //     return res.json();
-        // })
-        // .then((json) => {
-        //     return json;
-        // })
-        // .catch(function(error){
-        //     console.log(error);
-        // });
+    },
+
+    getPromotions: function(user_id){
+      let options = {
+          'method': 'GET',
+          'headers': {'Content-Type': 'application/json'}
+      };
+      return fetch(this.urlBase + "/promotions/" + user_id, options);
+    },
+
+    getProductByBarcodeId: function(barcode_id){
+      let options = {
+          'method': 'GET',
+          'headers': {'Content-Type': 'application/json'}
+      };
+      return fetch(this.urlBase + "/products/barcode/" + barcode_id, options);
     }
 }

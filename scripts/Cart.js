@@ -11,6 +11,9 @@ import {
 } from 'react-native';
 import Camera from 'react-native-camera';
 import styles from '../styles/main';
+import { List, ListItem } from 'react-native-elements';
+import CustomAPI from './CustomAPIRequestor';
+import _ from 'lodash';
 
 export default class Cart extends Component {
 
@@ -20,28 +23,38 @@ export default class Cart extends Component {
     this.state = {
       showCamera: this.props.showCamera,
     };
+    this.onBarCodeRead = _.debounce(this.onBarCodeRead,1000);
   }
 
   componentWillUnmount(){
-    console.log('unmout');
     this.props.updateCameraState(false);
+  }
+
+  getProductByBarcodeId = (id) => {
+    id.toString();
+    CustomAPI.getProductByBarcodeId(id)
+      .then((res) => res.json())
+      .then((json) => json)
+      .then((res) => {
+          var item = {
+            name: res.title,
+            price: res.price
+          };
+          this.props.addItemToCart(item);
+      })
+      .catch((error) => console.log(error))
   }
 
   onBarCodeRead = (e) => {
       //this.setState({showCamera: false});
-      Alert.alert(
-          "Barcode Found!",
-          "Type: " + e.type + "\nData: " + e.data
-      );
-      var item = {
-        name: e.data,
-        price: 10
-      };
-      this.props.addItemToCart(item);
+      // Alert.alert(
+      //     "Barcode Found!",
+      //     "Type: " + e.type + "\nData: " + e.data
+      // );
+      this.getProductByBarcodeId(e.data);
   }
 
   render() {
-     console.log(this.props.cartItems);
        //dataSource: ds.cloneWithRows(this.props.cartItems)
       const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
       let dataSource = ds.cloneWithRows(this.props.cartItems);
@@ -74,12 +87,19 @@ export default class Cart extends Component {
               <View>
                 <ListView
                   dataSource={dataSource}
-                  renderRow={(rowData) => <Text>{rowData.name} - {rowData.price}$</Text>}
-                  style={{height: 200}}
+                  renderRow={(rowData) =>
+                    <ListItem
+                      roundAvatar
+                      key={rowData.id}
+                      title={rowData.name + " " + rowData.price + "$"}
+                      hideChevron = {true}
+                      avatar={{uri:"http://www.bgclynchburg.org/editor/dudaone/images/placeholders/imgPlaceholder3.png"}}
+                    />
+                  }
                 />
                 <Text>Total: {totalCost}$</Text>
-
               </View>
+
               :
               <Text>{"Currently, you have no items in your cart. Press 'Scan' to add your first item!"}</Text>
             }

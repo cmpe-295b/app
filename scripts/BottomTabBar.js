@@ -12,6 +12,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import Cart from './Cart';
 import FaceRecognition from './FaceRecognition';
 import Promotions from './Promotions';
+import Map from './Map';
 
 export default class TabBar extends Component {
   static title = '<TabBarIOS>';
@@ -23,14 +24,21 @@ export default class TabBar extends Component {
     cartItems: [],
     notifCount: 0,
     presses: 0,
-    showCamera: false
+    showCamera: false,
+    mapItemLocation: null
   };
+
+  selectTab = (val, location) => {
+    //console.log(;)
+    this.setState({'selectedTab': val, 'mapItemLocation': location});
+  }
 
   updateCameraState = (val) => {
     this.setState({showCamera: val});
   }
 
   addItemToCart = (item) => {
+    console.log('adding item in controller');
     this.setState(
       {
         cartItems: this.state.cartItems.concat([item]),
@@ -56,7 +64,13 @@ export default class TabBar extends Component {
       );
     }else if(pageText === 'promotions'){
       return(
-        <Promotions />
+        <Promotions
+          selectTab = {this.selectTab}/>
+      );
+    }else if(pageText === 'map'){
+      return(
+        <Map
+          itemLocation = {this.state.mapItemLocation}/>
       );
     }else{
       return (
@@ -99,7 +113,7 @@ export default class TabBar extends Component {
               notifCount: this.state.notifCount + 1,
             });
           }}>
-          {this._renderContent('#783E33', 'Map Page', this.state.notifCount)}
+          {this._renderContent('#783E33', 'map', this.state.notifCount)}
           </Icon.TabBarItemIOS>
         <Icon.TabBarItemIOS
           title="Cart"
